@@ -1,0 +1,39 @@
+{
+  "firestore": {
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "checkos-app",
+          "appId": "1:617597131745:android:fd101b57255a34d6b0d0a0",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "checkos-app",
+          "configurations": {
+            "android": "1:617597131745:android:fd101b57255a34d6b0d0a0",
+            "ios": "1:617597131745:ios:07c48407f64fa1d7b0d0a0"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

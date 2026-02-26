@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CheckOS - Offline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #0175C2 0%, #02569D 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+    
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: #666;
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    
+    .button {
+      display: inline-block;
+      background: #0175C2;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+    
+    .button:hover {
+      background: #02569D;
+    }
+    
+    .features {
+      margin-top: 30px;
+      text-align: left;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 12px;
+    }
+    
+    .features h3 {
+      color: #333;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    
+    .features ul {
+      list-style: none;
+    }
+    
+    .features li {
+      color: #666;
+      font-size: 13px;
+      padding: 6px 0;
+      display: flex;
+      align-items: center;
+    }
+    
+    .features li::before {
+      content: "✓";
+      color: #0175C2;
+      margin-right: 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>Você está offline</h1>
+    <p>Parece que você perdeu a conexão com a internet. Alguns recursos podem não estar disponíveis até que a conexão seja restabelecida.</p>
+    
+    <a href="/" class="button">Tentar novamente</a>
+    
+    <div class="features">
+      <h3>Funcionalidades disponíveis offline:</h3>
+      <ul>
+        <li>Acessar dados já carregados</li>
+        <li>VisualizarOrdens de Serviço</li>
+        <li>Trabalhar com dados em cache</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
+

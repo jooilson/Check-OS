@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "934697110970",
+    "project_id": "checkos-system",
+    "storage_bucket": "checkos-system.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934697110970:android:f756af0df77135163f2183",
+        "android_client_info": {
+          "package_name": "com.infotec.checkos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyGd_LI_WOc7HFP5rrtPzMZhEkdcW-oYo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
