@@ -1,5 +1,6 @@
 
 import 'package:checkos/app.dart';
+import 'package:checkos/firebase_options.dart';
 import 'package:checkos/services/push_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -10,7 +11,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicializa Firebase para todas as plataformas, incluindo web
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   // App Check desabilitado para desenvolvimento
   // Erro "Too many attempts" impede uploads ao Storage
