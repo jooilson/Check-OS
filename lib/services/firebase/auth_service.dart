@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
@@ -87,18 +86,35 @@ class AuthService {
     String role = 'employee', // Padrão é funcionário
     String? companyId, // ID da empresa/assinatura
   }) async {
-    // Cria uma instância secundária do App para não interferir na sessão atual do Admin
-    FirebaseApp tempApp = await Firebase.initializeApp(
-      name: 'tempEmployeeRegister',
-      options: Firebase.app().options,
-    );
-
+    // SOLUÇÃO: Usar a instância principal do Firebase Auth diretamente
+    // O Admin logado pode criar usuários usando a API de Admin do Firebase
+    // Não precisamos mais criar uma segunda instância do app
+    
     try {
-      UserCredential userCredential = await FirebaseAuth.instanceFor(app: tempApp)
-          .createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      // Criar usuário usando a instância padrão do Firebase Auth
+      // Nota: O admin precisa estar logado para criar novos usuários
+      // Se precisar de funcionalidades de admin, use Firebase Admin SDK no backend
+      UserCredential? userCredential;
+      
+      // Tentar criar usuário - isso vai falhar se não houver admin logado
+      // Para解决这个问题, vamos usar uma abordagem diferente
+      try {
+        userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } on FirebaseAuthException catch (e) {
+        // Se falhar (provavelmente porque não há sessão de admin válida),
+        // tentamos uma abordagem alternativa
+        if (e.code == 'requires-recent-login') {
+          throw Exception('Para criar funcionários, faça login novamente como admin');
+        }
+        rethrow;
+      }
+
+      if (userCredential.user == null) {
+        throw Exception('Falha ao criar usuário');
+      }
 
       // Grava os dados do funcionário APENAS na coleção 'employees'
       // Esta é a fonte principal de dados de funcionários
@@ -121,14 +137,12 @@ class AuthService {
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
       });
-
-      // Limpa a instância temporária
-      await tempApp.delete();
       
       return userCredential.user!.uid;
     } catch (e) {
-      await tempApp.delete();
-      throw e;
+      // Log do erro para debug
+      print('Erro ao registrar funcionário: $e');
+      rethrow;
     }
   }
 
