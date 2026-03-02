@@ -23,6 +23,33 @@ class DetalhesOsPage extends StatefulWidget {
 class _DetalhesOsPageState extends State<DetalhesOsPage> {
   final OsRepository _osRepository = OsRepository();
   final LogRepository _logRepository = LogRepository();
+  late OsModel _os;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _os = widget.os;
+    _carregarDadosAtualizados();
+  }
+
+  Future<void> _carregarDadosAtualizados() async {
+    try {
+      final osAtualizada = await _osRepository.getOsById(widget.os.id);
+      if (osAtualizada != null && mounted) {
+        setState(() {
+          _os = osAtualizada;
+          _isLoading = false;
+        });
+      } else if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,18 +57,23 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('OS ${widget.os.numeroOs} - ${widget.os.nomeCliente}'),
+        title: Text('OS ${_os.numeroOs} - ${_os.nomeCliente}'),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) async {
               switch (value) {
                 case 'editar':
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => NovaOsPage(osParaEditar: widget.os),
-                    ),
-                  );
+                  // Busca os dados mais recentes do Firestore antes de editar
+                  // Isso garante que as imagens e outros dados esténham atualizados
+                  final osAtualizada = await _osRepository.getOsById(widget.os.id);
+                  if (osAtualizada != null && mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NovaOsPage(osParaEditar: osAtualizada),
+                      ),
+                    );
+                  }
                   break;
 
                 case 'excluir':
@@ -66,7 +98,7 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
                   );
 
                   if (confirm == true) {
-                    await _osRepository.deleteOs(widget.os.id);
+                    await _osRepository.deleteOs(_os.id);
                     
                     // Obtém o funcionário atual para auditoria
                     final employeeContext = context.read<EmployeeContext>();
@@ -83,8 +115,8 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
                         employeeName: employeeContext.currentEmployeeName,
                         timestamp: DateTime.now(),
                         action: 'DELETE_OS',
-                        osId: widget.os.id,
-                        osNumero: widget.os.numeroOs,
+                        osId: _os.id,
+                        osNumero: _os.numeroOs,
                         description: 'OS excluída',
                       ),
                     );
@@ -100,7 +132,7 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
                   break;
 
                 case 'gerar_pdf':
-                  GerarPdf.generateOsPdf(widget.os);
+                  GerarPdf.generateOsPdf(_os);
                   break;
               }
             },
@@ -113,13 +145,15 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
         ],
       ),
 
-      body: Padding(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.os.pendente) ...[
+              if (_os.pendente) ...[
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -127,7 +161,7 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => NovoDiarioPage(os: widget.os),
+                          builder: (_) => NovoDiarioPage(os: _os),
                         ),
                       );
                     },
@@ -147,18 +181,18 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
 
               const SizedBox(height: 16),
 
-              _buildInfoRow(context, 'Cliente', widget.os.nomeCliente, Icons.person),
-              _buildInfoRow(context, 'Serviço', widget.os.servico, Icons.build),
+              _buildInfoRow(context, 'Cliente', _os.nomeCliente, Icons.person),
+              _buildInfoRow(context, 'Serviço', _os.servico, Icons.build),
               _buildInfoRow(
                 context,
                 'Relato do Cliente',
-                widget.os.relatoCliente,
+                _os.relatoCliente,
                 Icons.description,
               ),
               _buildInfoRow(
                 context,
                 'Responsável',
-                widget.os.responsavel,
+                _os.responsavel,
                 Icons.supervisor_account,
               ),
 
@@ -177,11 +211,11 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
               const SizedBox(height: 16),
 
               DiarioListWidget(
-                osId: widget.os.id,
-                isPendente: widget.os.pendente,
-                numeroOs: widget.os.numeroOs,
-                nomeCliente: widget.os.nomeCliente,
-                osModel: widget.os,
+                osId: _os.id,
+                isPendente: _os.pendente,
+                numeroOs: _os.numeroOs,
+                nomeCliente: _os.nomeCliente,
+                osModel: _os,
               ),
             ],
           ),
