@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:checkos/core/utils/logger.dart';
 import 'package:checkos/data/models/diario_model.dart';
 import 'package:checkos/utils/debouncer.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +20,8 @@ class DiarioFormWidget extends StatefulWidget {
   final String? botaoTexto;
   final String osId;
   final bool isReadOnly;
+  final bool temPedido;
+  final String? numeroPedido;
 
   const DiarioFormWidget({
     super.key,
@@ -34,6 +37,8 @@ class DiarioFormWidget extends StatefulWidget {
     this.responsavel,
     this.funcionarios,
     this.isReadOnly = false,
+    this.temPedido = false,
+    this.numeroPedido,
   });
 
   final String? servico;
@@ -56,6 +61,7 @@ class _DiarioFormWidgetState extends State<DiarioFormWidget> {
   late TextEditingController _servicoController;
   late TextEditingController _relatoClienteController;
   late TextEditingController _responsavelController;
+  late TextEditingController _numeroPedidoController;
   late DateTime _dataSelecionada;
   late List<TextEditingController> _funcionariosControllers;
   late TextEditingController _pendenteDescricaoController;
@@ -70,6 +76,7 @@ class _DiarioFormWidgetState extends State<DiarioFormWidget> {
   bool _pendente = false;
   bool _scrollEnabled = true;
   bool _formChanged = false;
+  bool _temPedido = false;
   final _formKey = GlobalKey<FormState>();
 
   String _serializeSignature(List<Offset?> points) {
@@ -92,7 +99,7 @@ class _DiarioFormWidgetState extends State<DiarioFormWidget> {
         return null;
       }).toList();
     } catch (e) {
-      print('Erro ao desserializar assinatura: $e');
+      AppLogger.error('Erro ao desserializar assinatura', e);
       return [];
     }
   }
@@ -149,6 +156,9 @@ class _DiarioFormWidgetState extends State<DiarioFormWidget> {
         TextEditingController(text: widget.diarioParaEditar?.relatoCliente ?? widget.relatoCliente ?? '');
     _responsavelController =
         TextEditingController(text: widget.diarioParaEditar?.responsavel ?? widget.responsavel ?? '');
+    _numeroPedidoController =
+        TextEditingController(text: widget.numeroPedido ?? '');
+    _temPedido = widget.temPedido;
     _pendenteDescricaoController =
         TextEditingController(text: widget.diarioParaEditar?.pendenteDescricao ?? '');
     _relatoTecnicoController =
@@ -189,6 +199,7 @@ class _DiarioFormWidgetState extends State<DiarioFormWidget> {
     _servicoController.dispose();
     _relatoClienteController.dispose();
     _responsavelController.dispose();
+    _numeroPedidoController.dispose();
     _pendenteDescricaoController.dispose();
     _relatoTecnicoController.dispose();
     _signatureNotifier.dispose();
@@ -244,6 +255,8 @@ class _DiarioFormWidgetState extends State<DiarioFormWidget> {
             : null,
         assinatura: assinatura.isNotEmpty ? assinatura : null,
         imagens: _imagensUrls,
+        temPedido: _temPedido,
+        numeroPedido: _temPedido ? _numeroPedidoController.text : null,
         createdAt: widget.diarioParaEditar?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -431,6 +444,36 @@ class _DiarioFormWidgetState extends State<DiarioFormWidget> {
                       ),
                       maxLines: 3,
                     ),
+                    const SizedBox(height: 16),
+                    // Campo de pedido (igual em novaos)
+                    CheckboxListTile(
+                      title: const Text('OS com Pedido'),
+                      value: _temPedido,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      onChanged: (value) {
+                        setState(() {
+                          _formChanged = true;
+                          _temPedido = value ?? false;
+                        });
+                      },
+                    ),
+                    if (_temPedido) ...[
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _numeroPedidoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Número do Pedido',
+                          prefixIcon: Icon(Icons.shopping_cart),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (_temPedido && (value == null || value.isEmpty)) {
+                            return 'Por favor, insira o número do pedido';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),

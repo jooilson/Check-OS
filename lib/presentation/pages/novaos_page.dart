@@ -474,28 +474,17 @@ class _NovaOsPageState extends State<NovaOsPage> {
         elevation: 0,
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: Stack(
-        children: [
-          // Otimização: Fundo sólido para o cabeçalho (substitui gradiente pesado)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: MediaQuery.of(context).size.height * 0.3,
-            child: Container(color: Theme.of(context).colorScheme.primary),
-          ),
-          // Conteúdo rolável
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                physics: _isSigning ? const NeverScrollableScrollPhysics() : null,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Informações Básicas',
+      body: SingleChildScrollView(
+        physics: _isSigning ? const NeverScrollableScrollPhysics() : null,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Informações Básicas',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -772,8 +761,6 @@ class _NovaOsPageState extends State<NovaOsPage> {
               ),
             ),
           ),
-        ],
-      ),
     );
   }
 }

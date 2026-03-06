@@ -42,62 +42,62 @@ class DefaultFirebaseOptions {
   }
 
   // Web configuration
-  // IMPORTANT: Replace these values with your actual Firebase project settings
-  // You can find these in Firebase Console > Project Settings
+  // Configuração atualizada para checkos-system
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'BMSCohXer0F55tShFBtf8V2Jay53RTTsFjd9XUpAdvQlqXE12Vz9xG8MD0Sz9a2Sejb9Ji977jJ_IawW2xJXYlk', // Replace with your actual web API key
-    appId: '1:617597131745:web:0a1b2c3d4e5f6g7h8i9j0',
-    authDomain: 'checkos-app.firebaseapp.com',
-    databaseURL: 'https://checkos-app.firebaseio.com',
-    projectId: 'checkos-app',
-    storageBucket: 'checkos-app.appspot.com',
-    messagingSenderId: '617597131745',
+    apiKey: 'AIzaSyDe9QtfTH-pRBVAv0TJpsOrdJ7HYwwTFl8',
+    appId: '1:934697110970:web:b5760e7ca182ebd83f2183',
+    authDomain: 'checkos-system.firebaseapp.com',
+    databaseURL: 'https://checkos-system.firebaseio.com',
+    projectId: 'checkos-system',
+    storageBucket: 'checkos-system.firebasestorage.app',
+    messagingSenderId: '934697110970',
+    measurementId: 'G-969DLHS6HS',
   );
 
   // Android configuration
   // These values are taken from android/app/google-services.json
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDF5x2x_1x_2x_2x_2x_2x_2x_2x_2x_2x', // Replace with actual Android API key
-    appId: '1:617597131745:android:fd101b57255a34d6b0d0a0',
-    databaseURL: 'https://checkos-app.firebaseio.com',
-    messagingSenderId: '617597131745',
-    projectId: 'checkos-app',
-    storageBucket: 'checkos-app.appspot.com',
+    apiKey: 'AIzaSyCyGd_LI_WOc7HFP5rrtPzMZhEkdcW-oYo',
+    appId: '1:934697110970:android:f756af0df77135163f2183',
+    databaseURL: 'https://checkos-system.firebaseio.com',
+    messagingSenderId: '934697110970',
+    projectId: 'checkos-system',
+    storageBucket: 'checkos-system.firebasestorage.app',
   );
 
   // iOS configuration
   // IMPORTANT: Replace these values with your actual Firebase project settings
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'YOUR_IOS_API_KEY', // Replace with your actual iOS API key
-    appId: '1:617597131745:ios:07c48407f64fa1d7b0d0a0',
-    databaseURL: 'https://checkos-app.firebaseio.com',
-    messagingSenderId: '617597131745',
-    projectId: 'checkos-app',
-    storageBucket: 'checkos-app.appspot.com',
-    iosClientId: '617597131745-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com', // Replace with actual iOS Client ID
+    appId: '1:934697110970:ios:xxxxxxxxxxxxxxxx',
+    databaseURL: 'https://checkos-system.firebaseio.com',
+    messagingSenderId: '934697110970',
+    projectId: 'checkos-system',
+    storageBucket: 'checkos-system.firebasestorage.app',
+    iosClientId: '934697110970-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com', // Replace with actual iOS Client ID
     iosBundleId: 'com.example.checkos', // Replace with actual iOS Bundle ID
   );
 
   // macOS configuration (optional - only if needed)
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'YOUR_MACOS_API_KEY', // Replace with your actual macOS API key
-    appId: '1:617597131745:macos:xxxxxxxxxxxxxxxxxxxxx', // Replace with actual macOS app ID
-    databaseURL: 'https://checkos-app.firebaseio.com',
-    messagingSenderId: '617597131745',
-    projectId: 'checkos-app',
-    storageBucket: 'checkos-app.appspot.com',
-    iosClientId: '617597131745-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
+    appId: '1:934697110970:macos:xxxxxxxxxxxxxxxxxxxxx', // Replace with actual macOS app ID
+    databaseURL: 'https://checkos-system.firebaseio.com',
+    messagingSenderId: '934697110970',
+    projectId: 'checkos-system',
+    storageBucket: 'checkos-system.firebasestorage.app',
+    iosClientId: '934697110970-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
     iosBundleId: 'com.example.checkos',
   );
 
   // Windows configuration (optional - only if needed)
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'YOUR_WINDOWS_API_KEY', // Replace with your actual Windows API key
-    appId: '1:617597131745:windows:xxxxxxxxxxxxxxxxxxxxx', // Replace with actual Windows app ID
-    databaseURL: 'https://checkos-app.firebaseio.com',
-    messagingSenderId: '617597131745',
-    projectId: 'checkos-app',
-    storageBucket: 'checkos-app.appspot.com',
+    appId: '1:934697110970:windows:xxxxxxxxxxxxxxxxxxxxx', // Replace with actual Windows app ID
+    databaseURL: 'https://checkos-system.firebaseio.com',
+    messagingSenderId: '934697110970',
+    projectId: 'checkos-system',
+    storageBucket: 'checkos-system.firebasestorage.app',
   );
 }
 

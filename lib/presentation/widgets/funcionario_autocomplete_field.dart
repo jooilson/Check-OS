@@ -1,6 +1,6 @@
 import 'package:checkos/data/models/employee/employee_model.dart';
 import 'package:checkos/data/repositories/employee_repository.dart';
-import 'package:checkos/presentation/pages/employee_management/employee_registration_page.dart';
+import 'package:checkos/presentation/pages/employee_management/employee_add_page.dart';
 import 'package:flutter/material.dart';
 
 class FuncionarioAutocompleteField extends StatefulWidget {
@@ -162,24 +162,24 @@ class _FuncionarioAutocompleteFieldState
       );
 
       if (resultado == true && mounted) {
+        // Usar EmployeeAddPage para cadastrar novo funcionário
         final novoFuncionarioCadastrado = await Navigator.push<bool>(
           context,
           MaterialPageRoute(
-            builder: (context) => EmployeeRegistrationPage(
-              onComplete: () => Navigator.pop(context, true),
-              initialName: nomeDigitado,
-            ),
+            builder: (context) => const EmployeeAddPage(),
           ),
         );
 
-        if (novoFuncionarioCadastrado == true) {
+        if (novoFuncionarioCadastrado == true || novoFuncionarioCadastrado == null) {
           await _carregarFuncionarios();
 
-          final novoFuncionario = _funcionarios.firstWhere(
-            (f) => f.name.toLowerCase() == nomeDigitado.toLowerCase(),
-            orElse: () => _funcionarios.first,
-          );
-          _selecionarFuncionario(novoFuncionario);
+          if (_funcionarios.isNotEmpty) {
+            final novoFuncionario = _funcionarios.firstWhere(
+              (f) => f.name.toLowerCase() == nomeDigitado.toLowerCase(),
+              orElse: () => _funcionarios.first,
+            );
+            _selecionarFuncionario(novoFuncionario);
+          }
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

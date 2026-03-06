@@ -17,8 +17,15 @@ class PushNotificationService {
   
   /// Inicializa o serviço de push notifications
   static Future<void> initialize() async {
-    // Solicita permissão para notificações
-    await _requestPermission();
+    try {
+      // Tenta solicitar permissão para notificações
+      // Mas não bloqueia a inicialização se falhar
+      await _requestPermission();
+    } catch (e) {
+      // Se falhar a solicitação de permissão, continua mesmo assim
+      // O app deve funcionar mesmo sem notificações
+      print('Erro ao solicitar permissão de notificação (não bloqueia app): $e');
+    }
     
     // Configura handler para mensagens recebidas quando o app está em foreground
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
@@ -29,17 +36,44 @@ class PushNotificationService {
     // Verifica se o app foi aberto através de uma notificação ao iniciar
     await _checkInitialMessage();
     
-    // Obtém o token do dispositivo
-    await _getDeviceToken();
+    // Obtém o token do dispositivo (opcional - não bloqueia app se falhar)
+    try {
+      await _getDeviceToken();
+    } catch (e) {
+      print('Erro ao obter token do dispositivo: $e');
+    }
   }
   
   /// Solicita permissão para receber notificações
+  /// Não lança exceção - retorna false se a permissão for negada ou não determinada
   static Future<bool> _requestPermission() async {
     try {
       // Para web, não precisamos de permissão explícita no mesmo sentido
       // O Firebase Web usa Service Workers para notificações
       if (kIsWeb) {
-        final permission = await _firebaseMessaging.requestPermission(
+        try {
+          final permission = await _firebaseMessaging.requestPermission(
+            alert: true,
+            announcement: false,
+            badge: true,
+            carPlay: false,
+            criticalAlert: false,
+            provisional: false,
+            sound: true,
+          );
+          // Retorna true apenas se estiver autorizado
+          // Se não determinado ou negado, retorna false mas não lança exceção
+          return permission.authorizationStatus == AuthorizationStatus.authorized;
+        } catch (webError) {
+          // Erro ao solicitar permissão no web - não bloqueia o app
+          print('Erro ao solicitar permissão no web (não bloqueia app): $webError');
+          return false;
+        }
+      }
+      
+      // Para Android/iOS
+      try {
+        final settings = await _firebaseMessaging.requestPermission(
           alert: true,
           announcement: false,
           badge: true,
@@ -48,23 +82,15 @@ class PushNotificationService {
           provisional: false,
           sound: true,
         );
-        return permission.authorizationStatus == AuthorizationStatus.authorized;
+        
+        return settings.authorizationStatus == AuthorizationStatus.authorized;
+      } catch (mobileError) {
+        print('Erro ao solicitar permissão no mobile: $mobileError');
+        return false;
       }
-      
-      // Para Android
-      final settings = await _firebaseMessaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-      
-      return settings.authorizationStatus == AuthorizationStatus.authorized;
     } catch (e) {
-      print('Erro ao solicitar permissão de notificação: $e');
+      // Qualquer outro erro - não bloqueia o app
+      print('Erro geral ao solicitar permissão de notificação: $e');
       return false;
     }
   }

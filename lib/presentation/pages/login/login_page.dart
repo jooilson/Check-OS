@@ -1,10 +1,11 @@
 import 'package:checkos/core/constants/app_route_names.dart';
 import 'package:checkos/core/constants/app_strings.dart';
 import 'package:checkos/core/constants/login_strings.dart';
-import 'package:checkos/core/constants/error_strings.dart';
 import 'package:checkos/core/context/employee_context.dart';
+import 'package:checkos/data/models/employee/employee_model.dart';
 import 'package:checkos/data/repositories/employee_repository.dart';
 import 'package:checkos/services/firebase/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -74,31 +75,76 @@ class _LoginPageState extends State<LoginPage> {
 
       // 2. Verifica o papel (role) do usuário no Firestore
       if (userCredential.user != null) {
-        final role = await _authService.getUserRole(userCredential.user!.uid);
+        final uid = userCredential.user!.uid;
+        debugPrint("USER: ${userCredential.user?.uid}");
+        
+        final role = await _authService.getUserRole(uid);
         
         // 3. Busca os dados do funcionário atual (filtrando pelo UID do usuário logado)
         final employeeRepo = EmployeeRepository();
         
         // Busca o funcionário pelo ID do usuário autenticado
-        final currentEmployee = await employeeRepo.getEmployeeById(userCredential.user!.uid);
+        var currentEmployee = await employeeRepo.getEmployeeById(uid);
+        
+        // Fallback: se não encontrar em employees, busca em users
+        if (currentEmployee == null) {
+          debugPrint('[LoginPage] Funcionário não encontrado em employees, buscando em users...');
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .get();
+          
+          if (userDoc.exists && userDoc.data() != null) {
+            final data = userDoc.data() as Map<String, dynamic>;
+            // Cria um EmployeeModel a partir dos dados do usuário
+            currentEmployee = EmployeeModel(
+              id: uid,
+              name: data['name'] ?? '',
+              email: data['email'] ?? '',
+              role: data['role'] ?? 'employee',
+              phone: '',
+              companyId: data['companyId'],
+              isActive: data['isActive'] ?? true,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            );
+            debugPrint('[LoginPage] Funcionário encontrado em users: ${currentEmployee.name}, companyId: ${currentEmployee.companyId}');
+          }
+        }
         
         if (currentEmployee == null) {
-          // Se não encontrouemployee pelo UID, tenta buscar na lista (fallback)
-          final employees = await employeeRepo.getEmployeesList();
-          final foundEmployee = employees.firstWhere(
-            (emp) => emp.id == userCredential.user!.uid,
-            orElse: () => employees.first,
-          );
-          
-          // Define o funcionário atual no contexto global (inclui companyId)
+          // ERRO: Usuário não encontrado em nenhuma coleção
+          debugPrint('[LoginPage] ERRO: Funcionário não encontrado para UID: $uid');
+          await _authService.signOut();
           if (mounted) {
-            context.read<EmployeeContext>().setCurrentEmployee(foundEmployee);
+            setState(() {
+              _errorMessage = 'Erro nos dados da conta. Faça login novamente.';
+            });
           }
-        } else {
-          // Define o funcionário atual no contexto global (inclui companyId)
+          return;
+        }
+        
+        // Validação de segurança: verificar se o employee tem companyId
+        if (currentEmployee.companyId == null || currentEmployee.companyId!.isEmpty) {
+          debugPrint('[LoginPage] Usuário sem empresa - redirecionando para onboarding');
+          
+          // Define o employee temporariamente (sem companyId)
           if (mounted) {
             context.read<EmployeeContext>().setCurrentEmployee(currentEmployee);
           }
+          
+          // Redirecionar para página de cadastro de empresa (ONBOARDING OBRIGATÓRIO)
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, AppRouteNames.cadastroEmpresa);
+          }
+          return;
+        }
+        
+        debugPrint("EMPRESA ID: ${currentEmployee.companyId}");
+        
+        // Define o funcionário atual no contexto global (inclui companyId)
+        if (mounted) {
+          context.read<EmployeeContext>().setCurrentEmployee(currentEmployee);
         }
         
         if (mounted) {

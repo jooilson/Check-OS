@@ -15,6 +15,7 @@ class CompanyModel extends CompanyEntity {
     required super.createdAt,
     required super.updatedAt,
     super.subscriptionExpiresAt,
+    super.ownerId, // NOVO: ID do dono da empresa
   });
 
   factory CompanyModel.fromFirestore(DocumentSnapshot doc) {
@@ -38,6 +39,7 @@ class CompanyModel extends CompanyEntity {
       subscriptionExpiresAt: data['subscriptionExpiresAt'] != null
           ? (data['subscriptionExpiresAt'] as Timestamp).toDate()
           : null,
+      ownerId: data['ownerId'], // NOVO
     );
   }
 
@@ -56,6 +58,7 @@ class CompanyModel extends CompanyEntity {
       'subscriptionExpiresAt': subscriptionExpiresAt != null
           ? Timestamp.fromDate(subscriptionExpiresAt!)
           : null,
+      'ownerId': ownerId, // NOVO
     };
   }
 
@@ -73,6 +76,7 @@ class CompanyModel extends CompanyEntity {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'subscriptionExpiresAt': subscriptionExpiresAt?.toIso8601String(),
+      'ownerId': ownerId, // NOVO
     };
   }
 
@@ -96,6 +100,7 @@ class CompanyModel extends CompanyEntity {
       subscriptionExpiresAt: map['subscriptionExpiresAt'] != null
           ? DateTime.parse(map['subscriptionExpiresAt'])
           : null,
+      ownerId: map['ownerId'], // NOVO
     );
   }
 
@@ -112,6 +117,7 @@ class CompanyModel extends CompanyEntity {
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? subscriptionExpiresAt,
+    String? ownerId,
   }) {
     return CompanyModel(
       id: id ?? this.id,
@@ -126,12 +132,13 @@ class CompanyModel extends CompanyEntity {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       subscriptionExpiresAt: subscriptionExpiresAt ?? this.subscriptionExpiresAt,
+      ownerId: ownerId ?? this.ownerId,
     );
   }
 
   @override
   String toString() {
-    return 'CompanyModel(id: $id, name: $name, cnpj: $cnpj, plan: $plan, isActive: $isActive)';
+    return 'CompanyModel(id: $id, name: $name, cnpj: $cnpj, plan: $plan, isActive: $isActive, ownerId: $ownerId)';
   }
 }
 

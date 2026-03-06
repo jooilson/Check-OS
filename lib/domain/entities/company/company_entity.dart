@@ -13,6 +13,7 @@ class CompanyEntity extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? subscriptionExpiresAt;
+  final String? ownerId; // ID do dono da empresa
 
   const CompanyEntity({
     required this.id,
@@ -27,6 +28,7 @@ class CompanyEntity extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     this.subscriptionExpiresAt,
+    this.ownerId,
   });
 
   bool get isSubscriptionActive {
@@ -34,6 +36,8 @@ class CompanyEntity extends Equatable {
     if (subscriptionExpiresAt == null) return false;
     return subscriptionExpiresAt!.isAfter(DateTime.now());
   }
+
+  bool get hasOwner => ownerId != null && ownerId!.isNotEmpty;
 
   @override
   List<Object?> get props => [
@@ -49,6 +53,7 @@ class CompanyEntity extends Equatable {
         createdAt,
         updatedAt,
         subscriptionExpiresAt,
+        ownerId,
       ];
 }
 

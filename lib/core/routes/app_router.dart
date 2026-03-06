@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:checkos/data/models/os_model.dart';
+import 'package:checkos/data/models/employee/employee_model.dart';
 import 'package:checkos/presentation/pages/auth/auth_wrapper.dart';
+import 'package:checkos/presentation/pages/auth/auth_page.dart';
+import 'package:checkos/presentation/pages/register/register_page.dart';
+import 'package:checkos/presentation/pages/cadastro_empresa/cadastro_empresa_page.dart';
 import 'package:checkos/presentation/pages/detalhes_os_page.dart';
 import 'package:checkos/presentation/pages/employee_management/employee_management_page.dart';
 import 'package:checkos/presentation/pages/employee_management/employee_add_page.dart';
@@ -20,6 +24,12 @@ class AppRouter {
     switch (settings.name) {
       case AppRouteNames.authWrapper:
         return _buildPage(const AuthWrapper(), settings);
+
+      case AppRouteNames.login:
+        return _buildPage(const AuthPage(), settings);
+
+      case AppRouteNames.register:
+        return _buildPage(RegisterPage(showLoginPage: () {}), settings);
 
       case AppRouteNames.home:
         return _buildPage(const HomePage(), settings);
@@ -42,7 +52,11 @@ class AppRouter {
         return _buildPage(const EmployeeManagementPage(), settings);
 
       case AppRouteNames.addEmployee:
-        return _buildPage(const EmployeeAddPage(), settings);
+        final employee = settings.arguments as EmployeeModel?;
+        return _buildPage(EmployeeAddPage(employee: employee), settings);
+
+      case AppRouteNames.cadastroEmpresa:
+        return _buildPage(const CadastroEmpresaPage(), settings);
 
       default:
         return _buildPage(

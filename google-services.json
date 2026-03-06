@@ -1,8 +1,8 @@
 {
   "project_info": {
     "project_number": "617597131745",
-    "project_id": "checkos-app",
-    "storage_bucket": "checkos-app.firebasestorage.app"
+    "project_id": "checkos-system",
+    "storage_bucket": "checkos-system.firebasestorage.app"
   },
   "client": [
     {

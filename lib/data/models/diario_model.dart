@@ -22,6 +22,8 @@ class DiarioModel {
   final String? relatoTecnico;
   final String? assinatura;
   final List<String> imagens;
+  final bool temPedido;
+  final String? numeroPedido;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -49,6 +51,8 @@ class DiarioModel {
     this.relatoTecnico,
     this.assinatura,
     this.imagens = const [],
+    this.temPedido = false,
+    this.numeroPedido,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -77,6 +81,8 @@ class DiarioModel {
       'relatoTecnico': relatoTecnico,
       'assinatura': assinatura,
       'imagens': imagens,
+      'temPedido': temPedido,
+      'numeroPedido': numeroPedido,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };

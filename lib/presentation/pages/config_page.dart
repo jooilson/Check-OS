@@ -1,4 +1,5 @@
 import 'package:checkos/core/context/employee_context.dart';
+import 'package:checkos/core/utils/logger.dart';
 import 'package:checkos/data/models/diario_model.dart';
 import 'package:checkos/data/models/log_model.dart';
 import 'package:checkos/data/models/os_model.dart';
@@ -45,7 +46,7 @@ class _ConfigPageState extends State<ConfigPage> {
 
   Future<void> _selecionarLogo() async {
     try {
-      print('[ConfigPage] Abrindo seletor de imagens');
+      AppLogger.debug('[ConfigPage] Abrindo seletor de imagens');
       
       final resultado = await FilePicker.platform.pickFiles(
         type: FileType.image,
@@ -53,17 +54,17 @@ class _ConfigPageState extends State<ConfigPage> {
         allowCompression: false,
       );
 
-      print('[ConfigPage] Resultado do file picker: ${resultado?.files.length}');
+      AppLogger.debug('[ConfigPage] Resultado do file picker: ${resultado?.files.length}');
 
       if (resultado == null || resultado.files.isEmpty) {
-        print('[ConfigPage] Usuário cancelou a seleção');
+        AppLogger.debug('[ConfigPage] Usuário cancelou a seleção');
         return;
       }
 
       final caminhoArquivo = resultado.files.single.path;
       
       if (caminhoArquivo == null || caminhoArquivo.isEmpty) {
-        print('[ConfigPage] Erro: Caminho do arquivo é nulo ou vazio');
+        AppLogger.warning('[ConfigPage] Erro: Caminho do arquivo é nulo ou vazio');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Erro: Caminho do arquivo inválido')),
@@ -72,13 +73,13 @@ class _ConfigPageState extends State<ConfigPage> {
         return;
       }
 
-      print('[ConfigPage] Caminho do arquivo: $caminhoArquivo');
+      AppLogger.debug('[ConfigPage] Caminho do arquivo: $caminhoArquivo');
       
       final logoFile = File(caminhoArquivo);
       
       // Valida se o arquivo existe
       final existe = await logoFile.exists();
-      print('[ConfigPage] Arquivo existe: $existe');
+      AppLogger.debug('[ConfigPage] Arquivo existe: $existe');
       
       if (!existe) {
         if (mounted) {
@@ -89,10 +90,10 @@ class _ConfigPageState extends State<ConfigPage> {
         return;
       }
 
-      print('[ConfigPage] Salvando logo');
+      AppLogger.debug('[ConfigPage] Salvando logo');
       final savedPath = await LogoService.saveLogo(logoFile);
       
-      print('[ConfigPage] Resultado do salvamento: $savedPath');
+      AppLogger.debug('[ConfigPage] Resultado do salvamento: $savedPath');
       
       if (savedPath != null && mounted) {
         setState(() {
@@ -108,8 +109,7 @@ class _ConfigPageState extends State<ConfigPage> {
         );
       }
     } catch (e) {
-      print('[ConfigPage] Exceção ao selecionar logo: $e');
-      print('[ConfigPage] Stack trace: ${StackTrace.current}');
+      AppLogger.error('[ConfigPage] Exceção ao selecionar logo', e);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

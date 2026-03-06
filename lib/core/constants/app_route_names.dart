@@ -39,5 +39,10 @@ class AppRouteNames {
   static const String configuracoes = '/configuracoes';
   static const String logs = '/logs';
   static const String importExport = '/import-export';
+
+  // ============================================
+  // ROTAS DE CADASTRO EMPRESA (ONBOARDING)
+  // ============================================
+  static const String cadastroEmpresa = '/cadastro-empresa';
 }
 

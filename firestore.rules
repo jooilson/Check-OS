@@ -1,0 +1,136 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // === HELPER FUNCTIONS ===
+    
+    // Verifica se o usuário está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Verifica se o usuário está ativo
+    function isActive() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isActive == true;
+    }
+    
+    // Verifica se o usuário é owner da empresa
+    function isOwner(companyId) {
+      return isActive() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+    
+    // Verifica se o usuário é admin ou owner
+    function isAdmin(companyId) {
+      return isActive() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId &&
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner' ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+    
+    // Verifica se o usuário pertence à empresa
+    function belongsToCompany(companyId) {
+      return isActive() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+    }
+    
+    // === COLLECTION: companies ===
+    match /companies/{companyId} {
+      // Qualquer usuário logado pode ler dados básicos da empresa
+      allow read: if isAuthenticated();
+      
+      // Owner e Admin podem criar empresa
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
+      
+      // Owner e Admin podem editar empresa
+      allow update: if isAdmin(companyId);
+      
+      // Apenas Owner pode excluir empresa
+      allow delete: if isOwner(companyId);
+    }
+    
+    // === COLLECTION: users ===
+    match /users/{userId} {
+      // Usuários podem ler seus próprios dados
+      allow read: if isActive() && request.auth.uid == userId;
+      
+      // Admins podem ler dados de outros usuários da mesma empresa
+      allow read: if isAdmin(resource.data.companyId);
+      
+      // Usuários podem criar sua própria conta (primeiro acesso)
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Owner e Admin podem atualizar usuários da mesma empresa
+      allow update: if isAdmin(request.resource.data.companyId);
+      
+      // Owner e Admin podem excluir usuários (desativar)
+      allow delete: if isAdmin(request.resource.data.companyId);
+    }
+    
+    // === COLLECTION: employees ===
+    match /employees/{employeeId} {
+      // Usuários da empresa podem ler funcionários
+      allow read: if belongsToCompany(resource.data.companyId);
+      
+      // Admins podem criar funcionários
+      allow create: if isAdmin(request.resource.data.companyId);
+      
+      // Admins podem atualizar funcionários
+      allow update: if isAdmin(resource.data.companyId);
+      
+      // Owner e Admin podem excluir funcionários
+      allow delete: if isAdmin(resource.data.companyId);
+    }
+    
+    // === COLLECTION: diarios ===
+    match /diarios/{diarioId} {
+      // Usuários da empresa podem ler diários
+      allow read: if belongsToCompany(resource.data.companyId);
+      
+      // Usuários podem criar diários na sua empresa
+      allow create: if isActive() && request.resource.data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
+      
+      // Admins podem atualizar diários
+      allow update: if isAdmin(resource.data.companyId);
+      
+      // Owner e Admin podem excluir diários
+      allow delete: if isAdmin(resource.data.companyId);
+    }
+    
+    // === COLLECTION: ordens_servico (OS) ===
+    match /ordens_servico/{osId} {
+      // Usuários da empresa podem ler OS
+      allow read: if belongsToCompany(resource.data.companyId);
+      
+      // Usuários podem criar OS na sua empresa
+      allow create: if isActive() && request.resource.data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
+      
+      // Admins podem atualizar OS
+      allow update: if isAdmin(resource.data.companyId);
+      
+      // Owner e Admin podem excluir OS
+      allow delete: if isAdmin(resource.data.companyId);
+    }
+    
+    // === COLLECTION: logs ===
+    match /logs/{logId} {
+      // Admins podem ler logs
+      allow read: if isAdmin(resource.data.companyId);
+      
+      // Sistema pode criar logs
+      allow create: if true;
+      
+      // Ninguém pode modificar logs
+      allow update, delete: if false;
+    }
+    
+    // === COLLECTION: subscriptions ===
+    match /subscriptions/{subscriptionId} {
+      // Owner e Admin podem gerenciar assinaturas
+      allow read, write: if isAdmin(request.resource.data.companyId);
+    }
+  }
+}

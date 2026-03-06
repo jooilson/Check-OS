@@ -12,155 +12,241 @@ class EmployeeManagementPage extends StatefulWidget {
 }
 
 class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
-  final EmployeeRepository _employeeRepository = EmployeeRepository();
-  late Stream<List<EmployeeModel>> _employeesStream;
+  final _repo = EmployeeRepository();
+  late Stream<List<EmployeeModel>> _stream;
+  
+  bool? _filter;
 
   @override
   void initState() {
     super.initState();
-    _loadEmployees();
+    _load();
   }
 
-  void _loadEmployees() {
-    // Obtém o companyId do contexto do funcionário logado
+  void _load() {
     final companyId = context.read<EmployeeContext>().currentCompanyId;
-    _employeesStream = _employeeRepository.getEmployeesStream(companyId: companyId);
+    _stream = _repo.getEmployeesStream(companyId: companyId);
   }
 
-  Future<void> _deleteEmployee(String employeeId) async {
+  List<EmployeeModel> _applyFilter(List<EmployeeModel> list) {
+    if (_filter == null) return list;
+    return list.where((e) => e.isActive == _filter).toList();
+  }
+
+  Future<void> _delete(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Desativar Funcionário'),
-        content: const Text('Tem certeza que deseja desativar este funcionário?'),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Desativar'),
+        content: const Text('Confirmar?'),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Desativar')),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await _repo.deleteEmployee(id);
+    }
+  }
+
+  void _edit(EmployeeModel e) {
+    Navigator.pushNamed(context, '/add-employee', arguments: e);
+  }
+
+  Future<void> _activate(EmployeeModel e) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ativar'),
+        content: const Text('Confirmar?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Ativar')),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      final updated = e.copyWith(isActive: true, updatedAt: DateTime.now());
+      await _repo.updateEmployee(updated);
+    }
+  }
+
+  Future<void> _remove(EmployeeModel e) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Excluir Funcionário'),
+        content: Text('Tem certeza que deseja excluir "${e.name}"? Esta ação não pode ser desfeita.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Desativar'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
-
-    if (confirm != true) return;
-
-    try {
-      await _employeeRepository.deleteEmployee(employeeId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Funcionário desativado com sucesso!')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao desativar funcionário: $e')),
-        );
-      }
+    if (confirm == true) {
+      await _repo.deleteEmployee(e.id);
     }
-  }
-
-  void _editEmployee(EmployeeModel employee) {
-    Navigator.pushNamed(context, '/add-employee', arguments: employee);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gerenciar Funcionários'),
+        title: const Text('Funcionários'),
         centerTitle: true,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              setState(() {
+                switch (value) {
+                  case 'inativos':
+                    _filter = false;
+                    break;
+                  case 'ativos':
+                    _filter = true;
+                    break;
+                  default:
+                    _filter = null;
+                }
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'todos',
+                child: Row(
+                  children: [
+                    if (_filter == null) const Icon(Icons.check, size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Todos'),
+                  ],
+                ),
+              ),
+              
+              PopupMenuItem(
+                value: 'ativos',
+                child: Row(
+                  children: [
+                    if (_filter == true) const Icon(Icons.check, size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Ativos'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'inativos',
+                child: Row(
+                  children: [
+                    if (_filter == false) const Icon(Icons.check, size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Inativos'),
+                  ],
+                ),
+              ),
+              
+            ],
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filtrar',
+          ),
+        ],
       ),
-      body: StreamBuilder<List<EmployeeModel>>(
-        stream: _employeesStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: StreamBuilder(
+        stream: _stream,
+        builder: (ctx, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Erro: ${snapshot.error}'),
-            );
-          }
-
-          final employees = snapshot.data ?? [];
-
-          if (employees.isEmpty) {
+          final list = _applyFilter(snap.data ?? []);
+          if (list.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 64,
-                    color: colors.outline,
-                  ),
+                  Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
-                  const Text('Nenhum funcionário cadastrado'),
+                  Text('Nenhum funcionário ${_filter == true ? "ativo" : _filter == false ? "inativo" : ""}'),
                 ],
               ),
             );
           }
-
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            // Otimização: CacheExtent para manter itens na memória durante scroll
-            cacheExtent: 200,
-            itemCount: employees.length,
-            itemBuilder: (context, index) {
-              final employee = employees[index];
+            itemCount: list.length,
+            itemBuilder: (_, i) {
+              final e = list[i];
               return Card(
-                elevation: 2,
-                margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  onTap: employee.isActive ? () => _editEmployee(employee) : null,
                   leading: CircleAvatar(
-                    backgroundColor: employee.isActive ? colors.primaryContainer : colors.surfaceVariant,
-                    child: Text(
-                      employee.name.isNotEmpty ? employee.name[0].toUpperCase() : '?',
-                      style: TextStyle(
-                        color: employee.isActive ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+                    child: Text(e.name.isNotEmpty ? e.name[0].toUpperCase() : '?'),
+                  ),
+                  title: Text(e.name),
+                  subtitle: Text('${e.role} • ${e.email}'),
+                  trailing: PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _edit(e);
+                          break;
+                        case 'delete':
+                          _delete(e.id);
+                          break;
+                        case 'activate':
+                          _activate(e);
+                          break;
+                        case 'remove':
+                          _remove(e);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 20),
+                            SizedBox(width: 8),
+                            Text('Editar'),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                  title: Text(
-                    employee.name,
-                    style: TextStyle(
-                      decoration: employee.isActive ? null : TextDecoration.lineThrough,
-                      color: employee.isActive ? null : colors.onSurface.withAlpha(128),
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${employee.role} • ${employee.email}',
-                    style: TextStyle(
-                      color: employee.isActive ? null : colors.onSurface.withAlpha(128),
-                    ),
-                  ),
-                  trailing: employee.isActive ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        color: colors.primary,
-                        onPressed: () => _editEmployee(employee),
-                        tooltip: 'Editar Funcionário',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        color: colors.error,
-                        onPressed: () => _deleteEmployee(employee.id),
-                        tooltip: 'Desativar Funcionário',
+                      if (e.isActive)
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, size: 20, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Desativar', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        )
+                      else
+                        const PopupMenuItem(
+                          value: 'activate',
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle, size: 20, color: Colors.green),
+                              SizedBox(width: 8),
+                              Text('Ativar', style: TextStyle(color: Colors.green)),
+                            ],
+                          ),
+                        ),
+                      const PopupMenuItem(
+                        value: 'remove',
+                        child: Row(
+                          children: [
+                            Icon(Icons.remove_circle, size: 20, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Excluir', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
                       ),
                     ],
-                  ) : const Chip(label: Text('Inativo', style: TextStyle(fontSize: 10))),
+                  ),
                 ),
               );
             },
@@ -168,11 +254,8 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/add-employee');
-        },
+        onPressed: () => Navigator.pushNamed(context, '/add-employee'),
         child: const Icon(Icons.add),
-        tooltip: 'Adicionar Funcionário',
       ),
     );
   }

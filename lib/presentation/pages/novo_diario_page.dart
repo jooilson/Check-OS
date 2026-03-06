@@ -78,7 +78,6 @@ class _NovoDiarioPageState extends State<NovoDiarioPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -87,36 +86,20 @@ class _NovoDiarioPageState extends State<NovoDiarioPage> {
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [
-                    theme.colorScheme.surface,
-                    theme.colorScheme.background,
-                  ]
-                : [
-                    theme.colorScheme.primary,
-                    theme.colorScheme.background,
-                  ],
-            stops: const [0.0, 0.35],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: DiarioFormWidget(
-            numeroOs: widget.os.numeroOs,
-            nomeCliente: widget.os.nomeCliente,
-            osId: widget.os.id,
-            isLoading: _isLoading,
-            onSalvar: _salvarDiario,
-            botaoTexto: 'Salvar Diário',
-            servico: widget.os.servico,
-            relatoCliente: widget.os.relatoCliente,
-            responsavel: '',
-          ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: DiarioFormWidget(
+          numeroOs: widget.os.numeroOs,
+          nomeCliente: widget.os.nomeCliente,
+          osId: widget.os.id,
+          isLoading: _isLoading,
+          onSalvar: _salvarDiario,
+          botaoTexto: 'Salvar Diário',
+          servico: widget.os.servico,
+          relatoCliente: widget.os.relatoCliente,
+          responsavel: '',
+          temPedido: widget.os.temPedido,
+          numeroPedido: widget.os.numeroPedido,
         ),
       ),
     );
