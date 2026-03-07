@@ -1,9 +1,11 @@
+import 'package:checkos/core/context/employee_context.dart';
 import 'package:checkos/data/models/diario_model.dart';
 import 'package:checkos/data/models/os_model.dart';
 import 'package:checkos/data/repositories/diario_repository.dart';
 import 'package:checkos/data/repositories/os_repository.dart';
 import 'package:checkos/presentation/widgets/diario_form_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class NovoDiarioPage extends StatefulWidget {
   final OsModel os;
@@ -23,7 +25,13 @@ class _NovoDiarioPageState extends State<NovoDiarioPage> {
     setState(() => _isLoading = true);
 
     try {
-      await _diarioRepository.addDiario(diario);
+      // Obtém o companyId do contexto do funcionário logado
+      final companyId = context.read<EmployeeContext>().currentCompanyId;
+      if (companyId == null) {
+        throw Exception('Empresa não identificada. Faça login novamente.');
+      }
+
+      await _diarioRepository.addDiario(diario, companyId);
       await _osRepository.calcularAtualizarTotalKm(widget.os.id);
 
       if (diario.osfinalizado) {

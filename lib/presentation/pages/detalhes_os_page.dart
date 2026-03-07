@@ -212,6 +212,7 @@ class _DetalhesOsPageState extends State<DetalhesOsPage> {
 
               DiarioListWidget(
                 osId: _os.id,
+                companyId: _os.companyId ?? '', // companyId da OS
                 isPendente: _os.pendente,
                 numeroOs: _os.numeroOs,
                 nomeCliente: _os.nomeCliente,

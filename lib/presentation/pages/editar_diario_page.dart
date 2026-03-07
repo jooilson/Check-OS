@@ -34,10 +34,16 @@ class _EditarDiarioPageState extends State<EditarDiarioPage> {
       final bool agoraEFinalizado = diarioAtualizado.osfinalizado ?? false;
       final bool estaSendoFinalizado = agoraEFinalizado && !eraFinalizado;
 
+      // Obtém o companyId do diário (que foi salvo com companyId)
+      final companyId = diarioAtualizado.companyId;
+      if (companyId == null) {
+        throw Exception('Empresa não identificada neste diário.');
+      }
+
       if (estaSendoFinalizado) {
         // O diário está sendo marcado como osfinalizado. Vamos verificar se é o último.
         final todosOsDiarios =
-            await _diarioRepository.getDiarios(diarioAtualizado.osId);
+            await _diarioRepository.getDiarios(companyId, diarioAtualizado.osId);
         // Ordena para garantir que o último seja realmente o último em sequência.
         todosOsDiarios.sort((a, b) => a.numeroDiario.compareTo(b.numeroDiario));
 
