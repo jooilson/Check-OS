@@ -1,5 +1,6 @@
 class DiarioModel {
   final String id;
+  final String? companyId; // ID da empresa (multiempresa)
   final String osId;
   final String numeroOs;
   final double numeroDiario;
@@ -29,6 +30,7 @@ class DiarioModel {
 
   DiarioModel({
     required this.id,
+    this.companyId,
     required this.osId,
     required this.numeroOs,
     required this.numeroDiario,
@@ -59,6 +61,7 @@ class DiarioModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'companyId': companyId,
       'osId': osId,
       'numeroOs': numeroOs,
       'numeroDiario': numeroDiario,
@@ -91,6 +94,7 @@ class DiarioModel {
   factory DiarioModel.fromMap(String id, Map<String, dynamic> map) {
     return DiarioModel(
       id: id,
+      companyId: map['companyId'],
       osId: map['osId'],
       numeroOs: map['numeroOs'],
       numeroDiario: map['numeroDiario'] != null
@@ -125,6 +129,7 @@ class DiarioModel {
 
   DiarioModel copyWith({
     String? id,
+    String? companyId,
     String? osId,
     String? numeroOs,
     double? numeroDiario,
@@ -152,6 +157,7 @@ class DiarioModel {
   }) {
     return DiarioModel(
       id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
       osId: osId ?? this.osId,
       numeroOs: numeroOs ?? this.numeroOs,
       numeroDiario: numeroDiario ?? this.numeroDiario,
@@ -188,6 +194,7 @@ class DiarioModel {
   factory DiarioModel.fromJson(Map<String, dynamic> json) {
     return DiarioModel(
       id: json['id'],
+      companyId: json['companyId'],
       osId: json['osId'],
       numeroOs: json['numeroOs'],
       numeroDiario: json['numeroDiario'] != null

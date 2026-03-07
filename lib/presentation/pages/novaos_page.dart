@@ -187,6 +187,7 @@ class _NovaOsPageState extends State<NovaOsPage> {
                 controller: scrollController,
                 child: DiarioListWidget(
                   osId: widget.osParaEditar!.id,
+                  companyId: widget.osParaEditar!.companyId ?? '',
                   isPendente: _pendente,
                   numeroOs: _numeroOsController.text,
                   nomeCliente: _nomeClienteController.text,

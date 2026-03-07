@@ -157,25 +157,24 @@ class _ConfigPageState extends State<ConfigPage> {
     try {
       // Obtém o companyId do contexto do funcionário logado
       final companyId = context.read<EmployeeContext>().currentCompanyId;
+      if (companyId == null) {
+        throw Exception('Empresa não identificada. Faça login novamente.');
+      }
       
       // Filtra OS por companyId
       final ordensServico = await _osRepository.getOsList(companyId: companyId);
       
-      // Para diários e logs, como não têm companyId diretamente,
-      // filtramos pelos IDs das OS da empresa
-      final osIds = ordensServico.map((os) => os.id).toSet();
-      
-      // Busca todos os diários e filtra pelos IDs das OS da empresa
-      final allDiarios = await _diarioRepository.getAllDiarios();
-      final diariosFiltrados = allDiarios.where((d) => osIds.contains(d.osId)).toList();
+      // Para diários, filtra pelo companyId
+      final allDiarios = await _diarioRepository.getAllDiarios(companyId);
       
       // Busca todos os logs e filtra pelos IDs das OS da empresa
+      final osIds = ordensServico.map((os) => os.id).toSet();
       final allLogs = await _logRepository.getLogsList();
       final logsFiltrados = allLogs.where((l) => osIds.contains(l.osId)).toList();
 
       final caminho = await ImportExportService.exportarDados(
         ordemServicos: ordensServico,
-        diarios: diariosFiltrados,
+        diarios: allDiarios,
         logs: logsFiltrados,
       );
 
@@ -202,6 +201,17 @@ class _ConfigPageState extends State<ConfigPage> {
 
   Future<void> _importarDados() async {
     try {
+      // Primeiro obtemos o companyId do contexto
+      final companyId = context.read<EmployeeContext>().currentCompanyId;
+      if (companyId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Empresa não identificada. Faça login novamente.')),
+          );
+        }
+        return;
+      }
+
       final resultado = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
@@ -238,12 +248,14 @@ class _ConfigPageState extends State<ConfigPage> {
       final dados = await ImportExportService.importarDados(caminhoArquivo);
 
       // Limpar dados antigos
+      if (companyId != null) {
+        await _diarioRepository.deleteAllDiarios(companyId);
+      }
       await _osRepository.deleteAllOs();
-      await _diarioRepository.deleteAllDiarios();
       await _logRepository.deleteAllLogs();
 
       // Inserir novos dados
-      final ordensServico = dados['ordemServicos'] as List<OsModel>;
+      final ordensServico = dados['ordensServico'] as List<OsModel>;
       final diarios = dados['diarios'] as List<DiarioModel>;
       final logs = dados['logs'] as List<LogModel>;
 
@@ -251,7 +263,8 @@ class _ConfigPageState extends State<ConfigPage> {
         await _osRepository.addOs(os);
       }
       for (final diario in diarios) {
-        await _diarioRepository.addDiario(diario);
+        // Ao importar, usa o companyId atual do contexto
+        await _diarioRepository.addDiario(diario, companyId!);
       }
       for (final log in logs) {
         await _logRepository.addLog(log);

@@ -1,3 +1,4 @@
+import 'package:checkos/core/context/employee_context.dart';
 import 'package:checkos/data/models/diario_model.dart';
 import 'package:checkos/data/models/os_model.dart';
 import 'package:checkos/data/repositories/diario_repository.dart';
@@ -6,9 +7,11 @@ import 'package:checkos/presentation/pages/editar_diario_page.dart';
 import 'package:checkos/utils/gerarpdf.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class DiarioListWidget extends StatefulWidget {
   final String osId;
+  final String companyId; // Adicionado companyId para consultas multiempresa
   final bool isPendente;
   final String numeroOs;
   final String nomeCliente;
@@ -17,6 +20,7 @@ class DiarioListWidget extends StatefulWidget {
   const DiarioListWidget({
     super.key,
     required this.osId,
+    required this.companyId,
     required this.isPendente,
     required this.numeroOs,
     required this.nomeCliente,
@@ -40,7 +44,7 @@ class _DiarioListWidgetState extends State<DiarioListWidget> with AutomaticKeepA
     final colorScheme = Theme.of(context).colorScheme;
 
     return StreamBuilder<List<DiarioModel>>(
-      stream: _diarioRepository.getDiariosStream(widget.osId),
+      stream: _diarioRepository.getDiariosStream(widget.companyId, widget.osId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

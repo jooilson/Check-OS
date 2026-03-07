@@ -5,15 +5,57 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "companyId",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "osId",
           "order": "ASCENDING"
         },
         {
           "fieldPath": "data",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "diarios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "companyId",
+          "order": "ASCENDING"
         },
         {
-          "fieldPath": "__name__",
+          "fieldPath": "osId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "diarios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "companyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "data",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "diarios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "osId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "data",
           "order": "DESCENDING"
         }
       ]

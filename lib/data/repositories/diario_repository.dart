@@ -4,11 +4,14 @@ import 'package:checkos/data/models/diario_model.dart';
 class DiarioRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<String> addDiario(DiarioModel diario) async {
+  /// Método para adicionar companyId ao diário
+  /// Este método deve ser chamado passando o companyId do contexto
+  Future<String> addDiario(DiarioModel diario, String companyId) async {
     try {
       // Usa agregação COUNT do Firestore para contar sem buscar todos os documentos
       final countSnapshot = await _firestore
           .collection('diarios')
+          .where('companyId', isEqualTo: companyId)
           .where('osId', isEqualTo: diario.osId)
           .count()
           .get();
@@ -22,8 +25,11 @@ class DiarioRepository {
       // Cria o número completo (ex: 1.1)
       final numeroDiario = double.parse('$numeroOsInt.$proximoNumeroDiario');
 
-      // Adiciona o número ao diário
-      final diarioComNumero = diario.copyWith(numeroDiario: numeroDiario);
+      // Adiciona o número ao diário e o companyId
+      final diarioComNumero = diario.copyWith(
+        numeroDiario: numeroDiario,
+        companyId: companyId,
+      );
 
       final docRef = await _firestore
           .collection('diarios')
@@ -69,9 +75,11 @@ class DiarioRepository {
     }
   }
 
-  Stream<List<DiarioModel>> getDiariosStream(String osId) {
+  /// Stream de diários filtrado por companyId e osId
+  Stream<List<DiarioModel>> getDiariosStream(String companyId, String osId) {
     return _firestore
         .collection('diarios')
+        .where('companyId', isEqualTo: companyId)
         .where('osId', isEqualTo: osId)
         .orderBy('data', descending: true)
         .snapshots()
@@ -82,10 +90,12 @@ class DiarioRepository {
         });
   }
 
-  Future<List<DiarioModel>> getDiarios(String osId) async {
+  /// Lista de diários filtrado por companyId e osId
+  Future<List<DiarioModel>> getDiarios(String companyId, String osId) async {
     try {
       final snapshot = await _firestore
           .collection('diarios')
+          .where('companyId', isEqualTo: companyId)
           .where('osId', isEqualTo: osId)
           .orderBy('data', descending: true)
           .get();
@@ -99,11 +109,13 @@ class DiarioRepository {
   }
 
   /// Método com paginação para carregar diários de uma OS em lotes.
+  /// [companyId] - ID da empresa (obrigatório para multiempresa)
   /// [osId] - ID da Ordem de Serviço
   /// [limit] - número de documentos por página (padrão: 20)
   /// [lastDocument] - documento cursor para carregar a próxima página (opcional)
   /// Retorna uma tupla com (lista de diários, último documento da consulta)
   Future<(List<DiarioModel>, DocumentSnapshot?)> getDiariosPaginated(
+    String companyId,
     String osId, {
     int limit = 20,
     DocumentSnapshot? lastDocument,
@@ -111,6 +123,7 @@ class DiarioRepository {
     try {
       Query query = _firestore
           .collection('diarios')
+          .where('companyId', isEqualTo: companyId)
           .where('osId', isEqualTo: osId)
           .orderBy('data', descending: true)
           .limit(limit);
@@ -133,9 +146,13 @@ class DiarioRepository {
     }
   }
 
-  Future<List<DiarioModel>> getAllDiarios() async {
+  /// Lista todos os diários de uma empresa
+  Future<List<DiarioModel>> getAllDiarios(String companyId) async {
     try {
-      final snapshot = await _firestore.collection('diarios').get();
+      final snapshot = await _firestore
+          .collection('diarios')
+          .where('companyId', isEqualTo: companyId)
+          .get();
       return snapshot.docs
           .map((doc) => DiarioModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
           .toList();
@@ -144,17 +161,20 @@ class DiarioRepository {
     }
   }
 
-  /// Método com paginação para carregar todos os diários em lotes.
+  /// Método com paginação para carregar todos os diários de uma empresa em lotes.
+  /// [companyId] - ID da empresa (obrigatório para multiempresa)
   /// [limit] - número de documentos por página (padrão: 20)
   /// [lastDocument] - documento cursor para carregar a próxima página (opcional)
   /// Retorna uma tupla com (lista de diários, último documento da consulta)
-  Future<(List<DiarioModel>, DocumentSnapshot?)> getAllDiariosPaginated({
+  Future<(List<DiarioModel>, DocumentSnapshot?)> getAllDiariosPaginated(
+    String companyId, {
     int limit = 20,
     DocumentSnapshot? lastDocument,
   }) async {
     try {
       Query query = _firestore
           .collection('diarios')
+          .where('companyId', isEqualTo: companyId)
           .orderBy('data', descending: true)
           .limit(limit);
 
@@ -176,12 +196,27 @@ class DiarioRepository {
     }
   }
 
-  Future<void> deleteAllDiarios() async {
-    final snapshot = await _firestore.collection('diarios').get();
+  /// Deleta todos os diários de uma empresa específica
+  Future<void> deleteAllDiarios(String companyId) async {
+    final snapshot = await _firestore
+        .collection('diarios')
+        .where('companyId', isEqualTo: companyId)
+        .get();
     for (final doc in snapshot.docs) {
       await doc.reference.delete();
     }
   }
 
-  
+  /// Deleta todos os diários de uma OS específica (dentro de uma empresa)
+  Future<void> deleteDiariosByOsId(String companyId, String osId) async {
+    final snapshot = await _firestore
+        .collection('diarios')
+        .where('companyId', isEqualTo: companyId)
+        .where('osId', isEqualTo: osId)
+        .get();
+    for (final doc in snapshot.docs) {
+      await doc.reference.delete();
+    }
+  }
 }
+
